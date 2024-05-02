@@ -69,7 +69,7 @@ double phi_value[n_traj];
 
 //functions void
 void setup(void);
-void relaunch(void);
+void relaunch(int status);
 void jobcomplete(int i);
 void determine_parents(void);
 
@@ -94,7 +94,7 @@ setup();
 }
 else{
 generation = last_completed_generation;
-relaunch();
+relaunch(1);
 }
  
 //GA
@@ -102,7 +102,7 @@ while(2>1){
 
 if(q_jobs_done()==1){
 determine_parents();
-relaunch();
+relaunch(0);
 }
 
 sleep(30);
@@ -321,48 +321,55 @@ generation++;
 }
 
 
-void relaunch(void){
+void relaunch(int status){
+    
+    int i;
+    int parent_choice;
+    
+    long int rn_seed;
+    
+    //loop through parameter cases
+    for(i=0;i<n_traj;i++){
+            
+        rn_seed = (int) (drand48()*2000000);
 
-int i;
-int parent_choice;
+        if(status == 0){
+         
+            if(i==0){parent_choice=parent_list[0];}
+            else{
+                parent_choice= (int) (drand48()*parents);
+                parent_choice=parent_list[parent_choice];
+            }
+             
+            //input parameters file
+            ofstream output("input_parameters.dat",ios::out);
+            output << rn_seed << " " << generation << endl;
+            
+            //copy file
+            sprintf(st,"cp input_parameters.dat iteration_%d",i);
+            system(st);
+            
+            //copy net
+            sprintf(st,"cp iteration_%d/net_out_gen_%d.dat iteration_%d/net_in_gen_%d.dat",parent_choice,generation-1,i,generation);
+            system(st);
+            cout << st << endl;
+            
+            
+            
+        }
 
-long int rn_seed;
-
-//loop through parameter cases
-for(i=0;i<n_traj;i++){
- 
-rn_seed = (int) (drand48()*2000000);
- 
-if(i==0){parent_choice=parent_list[0];}
-else{
-parent_choice= (int) (drand48()*parents);
-parent_choice=parent_list[parent_choice];
-}
- 
-//input parameters file
-ofstream output("input_parameters.dat",ios::out);
-output << rn_seed << " " << generation << endl;
-
-//copy file
-sprintf(st,"cp input_parameters.dat iteration_%d",i);
-system(st);
-
-//copy net
-sprintf(st,"cp iteration_%d/net_out_gen_%d.dat iteration_%d/net_in_gen_%d.dat",parent_choice,generation-1,i,generation);
-system(st);
-cout << st << endl;
-
-//copy file
-jobcomplete(0);
-sprintf(st,"mv jobcomplete.dat iteration_%d",i);
-system(st);
-
-sprintf(st,"cd iteration_%d; sbatch swarm_%d.sh",i,i); system(st);
-// sprintf(st,"cd iteration_%d; ./swarm_%d",i,i); system(st);
-
-//pause
-sleep(2);
-
-}
-time_last_launch=time(NULL);
+        //copy file
+        jobcomplete(0);
+        sprintf(st,"mv jobcomplete.dat iteration_%d",i);
+        system(st);
+        
+        sprintf(st,"cd iteration_%d; sbatch swarm_%d.sh",i,i); system(st);
+        // sprintf(st,"cd iteration_%d; ./swarm_%d",i,i); system(st);
+        
+        //pause
+        sleep(2);
+    
+    }
+    
+    time_last_launch=time(NULL);
 }
