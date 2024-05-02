@@ -7,6 +7,7 @@
 # include <iomanip>
 # include <time.h>
 
+#include <fstream>
 
 using namespace std;
 using std::cout;
@@ -17,37 +18,6 @@ using std::cin;
 using std::ifstream;
 #include <cstdlib>
 
-#include <iostream>
-#include <filesystem>
-#include <string>
-
-namespace fs = std::filesystem;
-
-int getLastFileNumber(const std::string& prefix) {
-    int maxNumber = -1;
-    bool found = false;
-
-    for (const auto& entry : fs::directory_iterator(fs::current_path())) {
-        if (entry.is_regular_file()) {
-            std::string filename = entry.path().filename().string();
-            if (filename.find(prefix) == 0) {
-                // Extracting the number part of the filename
-                std::string numberStr = filename.substr(prefix.length());
-                try {
-                    int number = std::stoi(numberStr);
-                    if (number > maxNumber) {
-                        maxNumber = number;
-                    }
-                    found = true;
-                } catch (const std::invalid_argument&) {
-                    // Ignore filenames that cannot be converted to integers
-                }
-            }
-        }
-    }
-
-    return found ? maxNumber : -1;
-}
 
 char st[256];
 long int rn_seed;
@@ -79,21 +49,33 @@ int q_jobs_done(void);
 //functions bool
 bool q_file_exist(const char *fileName);
 
+bool fileExists(const std::string& filePath) {
+    std::ifstream file(filePath);
+    return file.good();
+}
 
 int main(void){
 
 //seed RN generator
 srand48(rn_seed2);
 
-std::string prefix = "output_phi_list_gen_";
-
-int last_completed_generation = getLastFileNumber(prefix);
 //setup
-if(last_completed_generation == -1){
+bool ifFileExists = false; 
+ifFileExists = fileExists("iteration_0/input_parameters.dat");
+
+    
+if(ifFileExists == false){
 setup();
 }
+    
 else{
-generation = last_completed_generation;
+    
+sprintf(st,"iteration_0/input_parameters.dat");
+ifstream input_params(st, ios::in);
+int temp_seed, latest_generation_to_finish;
+input_params >> temp_seed >> latest_generation_to_finish; 
+    
+generation = latest_generation_to_finish;
 relaunch(1);
 }
  
