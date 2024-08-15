@@ -24,7 +24,7 @@ long int rn_seed;
 long ltime = time(NULL);
 long int rn_seed2 = ltime;
 long int time_last_launch; // DP steve safeguard changes
-long int time_limit = 60 * 60;  // DP steve safeguard changes
+long int time_limit = 24 * 60 * 60;  // DP steve safeguard changes
 
 // DP change
 const int n_traj=50;
