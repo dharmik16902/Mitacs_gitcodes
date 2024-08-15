@@ -6,6 +6,9 @@
 #include <iostream>
 #include <iomanip>
 #include <time.h>
+#include <sys/stat.h>
+#include <vector> 
+#include <sstream>
 
 using namespace std;
 using std::cin;
@@ -38,34 +41,108 @@ double phi_value[n_traj];
 void setup(void);
 void relaunch(void);
 void jobcomplete(int i);
-void determine_parents(void);
+void determine_parents(bool isContinued);
 
 // functions int
 int q_jobs_done(void);
 
-// functions bool
-bool q_file_exist(const char *fileName);
+
+bool fileExists(const string& name) {
+    struct stat buffer;
+    return (stat(name.c_str(), &buffer) == 0);
+}
+
+bool isContinuousGeneration() {
+    string directory = "iteration_0";
+    string filename = directory + "/input_parameters.dat";
+
+    bool isContinuousGenerationFlag = false;
+
+    // Check if directory exists
+    if (!fileExists(directory)) return false;
+
+    cout << "Directory exists." << endl;
+
+    // Check if file exists inside the directory
+    if (fileExists(filename)) {
+        cout << "File found: " << filename << endl;
+
+        // Open the file
+        ifstream inputFile(filename);
+        if (inputFile.is_open()) {
+            string line;
+            vector<int> values;
+
+            // Read values from the file
+            while (inputFile >> line) {
+                stringstream ss(line);
+                int value;
+                if (ss >> value) {
+                    values.push_back(value);
+                }
+            }
+            inputFile.close();
+
+            // Check if there are at least 2 values
+            if (values.size() >= 2) {
+                generation = values[1] - 1; // Read the second value
+                cout << "Second value: " << generation << endl;
+                isContinuousGenerationFlag = true;
+            } else {
+                cerr << "Not enough values in the file." << endl;
+            }
+        } else {
+            cerr << "Failed to open the file." << endl;
+        }
+    } else {
+        cerr << "File does not exist in the directory." << endl;
+    }
+
+    return isContinuousGenerationFlag;
+}
 
 int main(void)
 {
 
     // seed RN generator
     srand48(rn_seed2);
+    bool flag = isContinuousGeneration();
 
-    // setup
-    setup();
+    if(flag){
+        determine_parents(true);
+        relaunch();
+        sleep(30);
 
-    // GA
-    while (2 > 1)
-    {
-        time_last_launch = time(NULL);
-        if (q_jobs_done() == 1)
+        while (2 > 1)
         {
-            determine_parents();
-            relaunch();
+            time_last_launch = time(NULL);
+            if (q_jobs_done() == 1)
+            {
+                determine_parents(false);
+                relaunch();
+            }
+
+            sleep(30);
         }
 
-        sleep(30);
+    }
+
+    else{
+        // setup
+        setup();
+
+        // GA
+        while (2 > 1)
+        {
+            time_last_launch = time(NULL);
+            if (q_jobs_done() == 1)
+            {
+                determine_parents(false);
+                relaunch();
+            }
+
+            sleep(30);
+        }
     }
 }
 
@@ -203,7 +280,7 @@ bool q_file_exist(const char *fileName)
     return infile.good();
 }
 
-void determine_parents(void)
+void determine_parents(bool isContinued)
 {
 
     int i;
@@ -287,12 +364,15 @@ void determine_parents(void)
         if (j == 0)
         {
             top_parent = p1;
-            output_phi_min << generation << " " << phi_min << endl;
-            output_mean_p << generation << " " << mean_p[p1] << endl;
-            output_mean_wd << generation << " " << mean_wd[p1] << endl;
-            output_mean_he << generation << " " << mean_he[p1] << endl;
+            if(!isContinued){
+                output_phi_min << generation << " " << phi_min << endl;
+                output_mean_p << generation << " " << mean_p[p1] << endl;
+                output_mean_wd << generation << " " << mean_wd[p1] << endl;
+                output_mean_he << generation << " " << mean_he[p1] << endl;
+            }
         }
-        output_phi_list << p1 << " " << phi_value[p1] << endl;
+        if(!isContinued)
+            output_phi_list << p1 << " " << phi_value[p1] << endl;
         phi_value[p1] = phi_dummy;
     }
 
