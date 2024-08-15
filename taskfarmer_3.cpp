@@ -58,7 +58,7 @@ int main(void)
     // GA
     while (2 > 1)
     {
-
+        time_last_launch = time(NULL);
         if (q_jobs_done() == 1)
         {
             determine_parents();
