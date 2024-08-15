@@ -180,10 +180,20 @@ ga();
 void initialize(void){
 
 //clean up
-sprintf(st,"rm report_*");
-cout << st << endl;
-cout << endl;
-system(st);
+// sprintf(st,"rm report_*");
+// cout << st << endl;
+// cout << endl;
+// system(st);
+
+const char* cmd = "find . -type f -name 'report_*' ! -name 'report_phi_*' -exec rm {} +";
+cout << "Executing command: " << cmd << endl;
+int result = system(cmd);
+
+if(result == -1) {
+    cerr << "Failed to execute command" << endl;
+} else {
+    cout << "Command executed successfully" << endl;
+}
 
 if(generation>1){
 sprintf(st,"rm net_*_gen_%d.dat",generation-2);
