@@ -20,5 +20,5 @@ Steps:
 1. git clone https://github.com/dharmik16902/Mitacs_gitcodes.git
 2. change the trajectory time in file "info_erasure.cpp" (can use vim command on terminal to do it)
 2.2 change the total run time from "deschamps.sh" according to cluster
-3. g++ -Wall -o deschamps taskfarmer_3.cpp -lm -O
+3. g++ -Wall -o deschamps taskfarmer_3.cpp -lm -O (or  g++ -w -o deschamps taskfarmer_3.cpp -lm -O -Wno-deprecated-declarations)
 4. sbatch deschamps.sh
